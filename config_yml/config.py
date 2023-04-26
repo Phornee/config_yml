@@ -29,7 +29,7 @@ class Config:
 
         self.config = {}
 
-        self._read_config()
+        self.read_config()
 
     def __getitem__(self, key):
         return self.config.get(key, None)
@@ -60,7 +60,12 @@ class Config:
         """
         return copy.deepcopy(self.config)
 
-    def _read_config(self):
+    def read_config(self):
+        """ Reads the configuration yml. 
+            First, it reads the template if provided to setup default values. That way, new default values can be
+            added to the package template, without the need of modifying all the config files already deployed.
+            Then modifies it with the specified config.yml
+        """
         # First get default values from template config file
         try:
             # First try to get the template
@@ -89,10 +94,19 @@ class Config:
                 self.update(template_config)
                 self.write()
 
-    def refresh(self):
-        """Force to read again the config file (and template)
+        self._after_reading()
+
+    def _after_reading(self):
+        """ Postprocess to adapt the yaml conig recently read
         """
-        self._read_config()
+
+    def _before_writting(self):
+        """ By default, it makes nothing and just return a reference to the original member config
+            If needed, it can modify the data before reading, and return a copy instead
+        Returns:
+            dict: Copy of the modified config, or the original one (by default)
+        """
+        return self.config
 
     @staticmethod
     def _merge_config(source_config: dict, dest_config: dict):
@@ -136,10 +150,11 @@ class Config:
     def write(self):
         """Write to disk the memory config 
         """
+        prepared_config = self._before_writting()
         config_yml_path = os.path.join(self.homevar, self._config_file_name)
         try:
             with open(config_yml_path, 'w', encoding="utf-8") as config_file:
-                yaml.dump(self.config, config_file)
+                yaml.dump(prepared_config, config_file)
         except OSError:
             pass
 
