@@ -87,48 +87,41 @@ class Testing(unittest.TestCase):
         self.assertEqual(config_template, expected_merge)
 
     def test_002_from_scrath(self):
-        """ Remove config file, to start from scratch """
-        var_config_path = Config.get_config_path("baseutils_tests", "config_new.yml")
-        if os.path.exists(var_config_path):
-            os.remove(Config.getConfigPath("baseutils_tests", "config_new.yml"))
-
+        """ Test config initialization from scratch
+        """
         # Instatiate a config file from scratch, based only on template
         # Will be automatically writen to file
         template_path = f'{Path(__file__).parent}/data/config_template.yml'
-        _ = Config(
-                    package_name="baseutils_tests",
+        config = Config(
+                    package_name="config_yml",
                     template_path=template_path,
                     config_file_name="config_new.yml",
+                    dry_run_abs_path=""
                   )
 
         try:
             # Check that resulting config file equals the template file
-            with open(var_config_path, "r", encoding="utf-8") as config_file:
+            with open(config.get_config_path(), "r", encoding="utf-8") as config_file:
                 config_read = yaml.load(config_file, Loader=yaml.FullLoader)
                 with open(template_path, "r", encoding="utf-8") as template_config_file:
                     template_config_read = yaml.load(template_config_file, Loader=yaml.FullLoader)
                     self.assertEqual(config_read, template_config_read)
         except IOError as ex:
             self.assertFalse(f"File not found: {ex}")
-        finally:
-            os.remove(Config.get_config_path("baseutils_tests", "config_new.yml"))
 
     def test_003_update_config(self):
         """Test updating a config
         """
         # Copy already-made config to var destination
         existing_path = f"{Path(__file__).parent}/data/config_existing.yml"
-        var_config_path = Config.get_config_path(
-            "baseutils_tests", "config_existing.yml"
-        )
-        shutil.copy(existing_path, var_config_path)
 
         # Instatiate a config file from scratch, with an updated template, with an existing config
         template_path = f'{Path(__file__).parent}/data/config_template.yml'
         config = Config(
-                        package_name="baseutils_tests",
+                        package_name="config_yml",
                         template_path=template_path,
                         config_file_name="config_existing.yml",
+                        dry_run_abs_path=existing_path
                        )
 
         expected_merged = {
@@ -144,7 +137,7 @@ class Testing(unittest.TestCase):
 
         try:
             # Check that resulting config file equals the template file
-            with open(var_config_path, "r", encoding="utf-8") as config_file:
+            with open(config.get_config_path(), "r", encoding="utf-8") as config_file:
                 config_read = yaml.load(config_file, Loader=yaml.FullLoader)
                 expected_merged = {
                                     "key_template1": "template",
@@ -154,9 +147,6 @@ class Testing(unittest.TestCase):
                 self.assertEqual(config_read, expected_merged)
         except IOError as ex:
             self.assertFalse(f"File not found: {ex}")
-        finally:
-            os.remove(Config.get_config_path("baseutils_tests", "config_existing.yml"))
-
 
 if __name__ == "__main__":
     unittest.main()

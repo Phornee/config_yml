@@ -4,6 +4,7 @@ import copy
 from pathlib import Path
 import logging
 import yaml
+import shutil
 
 log = logging.getLogger(__name__)
 
@@ -12,13 +13,16 @@ class Config:
     """ Manages a config file that will be generated in the /var/ folder
     """
 
-    def __init__(self, package_name: str, template_path: str, config_file_name: str):
+    def __init__(self, package_name: str, template_path: str, config_file_name: str, dry_run_abs_path: str = None):
         """_summary_
 
         Args:
             package_name (str): Name of the package owner of the config file
             template_path (str): Path of the template file
             config_path (str): Name of config file (will be placed in home/var/{modulename} folder)
+            dry_run_abs_path (str): None if no dry run selected
+                                    "" if dry run selected, with empsty config file
+                                    "{absolute-path}" if dry run selected, starting with an initial file
         """
         self._template_path = template_path
         self._config_file_name = config_file_name
@@ -27,15 +31,29 @@ class Config:
         if not os.path.exists(self.homevar):
             os.makedirs(self.homevar)
 
+        if dry_run_abs_path is not None:
+            self.dry_run = True
+            self.homevar = os.path.join(self.homevar, 'dryrun_config')
+            if os.path.exists(self.homevar):
+                shutil.rmtree(self.homevar)
+            os.makedirs(self.homevar)
+            if  dry_run_abs_path != "":
+                shutil.copy(dry_run_abs_path,  os.path.join(self.homevar, self._config_file_name))           
+        else:
+            self.dry_run = False
+
         self.config = {}
 
         self.read_config()
 
+    def __del__(self):
+        if self.dry_run:
+            shutil.rmtree(self.homevar)
+
     def __getitem__(self, key):
         return self.config.get(key, None)
 
-    @staticmethod
-    def get_config_path(package_name: str, config_file_name: str) -> str:
+    def get_config_path(self) -> str:
         """Get the path for the config, inside the homevar path
         Args:
             package_name (str): The name of the package... will be joined after the homevar
@@ -44,7 +62,7 @@ class Config:
         Returns:
             str: The path of the config file
         """
-        return os.path.join(str(Path.home()), 'var', package_name, config_file_name)
+        return os.path.join(self.homevar, self._config_file_name)
 
     def get_dict(self) -> dict:
         """Returns the config  dictionary
