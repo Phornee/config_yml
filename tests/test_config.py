@@ -1,8 +1,6 @@
 """ Unit tests """
 import unittest
-import os
 from pathlib import Path
-import shutil
 import yaml
 
 from config_yml import Config

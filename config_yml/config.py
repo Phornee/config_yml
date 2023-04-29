@@ -107,12 +107,12 @@ class Config:
                 self.config = template_config
             else:
                 self.config = config
+            self._after_reading()
         else:  # No previous config
             if template_config:  # If config file doesn´t exist, but template does, write config with template content
                 self.update(template_config)
+                self._after_reading()
                 self.write()
-
-        self._after_reading()
 
     def _after_reading(self):
         """ Postprocess to adapt the yaml conig recently read
@@ -145,7 +145,7 @@ class Config:
                         dest_config[key] = {}
                     elif isinstance(value, list):
                         dest_config[key] = []
-                if type(value) in [int, str]:
+                if type(value) in [int, str, bool, float, tuple]:
                     dest_config[key] = value
                 Config._merge_config(source_config[key], dest_config[key])
         elif isinstance(dest_config, list):
