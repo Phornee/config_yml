@@ -94,7 +94,7 @@ class Testing(unittest.TestCase):
                     package_name="config_yml",
                     template_path=template_path,
                     config_file_name="config_new.yml",
-                    dry_run_abs_path=""
+                    dry_run=True
                   )
 
         try:
@@ -119,6 +119,7 @@ class Testing(unittest.TestCase):
                         package_name="config_yml",
                         template_path=template_path,
                         config_file_name="config_existing.yml",
+                        dry_run=True,
                         dry_run_abs_path=existing_path
                        )
 
