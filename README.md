@@ -5,4 +5,5 @@ Configuration management package
   customized for your particular installation (that could be edited manually, or by your ansible recipe).
 - Local config will be merged with the template in your application overwritting its values, allowing you to upgrade 
   and distribute your application adding new fields with default values seamlessly.
+- When merging two lists, if the items inside are dicts it will identify them as equal if the field 'name' matches.
 - Provides functionality not only to read the configuration, but also to modify it in runtime

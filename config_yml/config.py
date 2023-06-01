@@ -151,13 +151,29 @@ class Config:
                         dest_config[key] = []
                 if type(value) in [int, str, bool, float, tuple]:
                     dest_config[key] = value
-                Config._merge_config(source_config[key], dest_config[key])
+                else:
+                    Config._merge_config(source_config[key], dest_config[key])
         elif isinstance(dest_config, list):
             if not isinstance(source_config, list):
                 raise TypeError()
-            for elem in source_config:
-                if elem not in dest_config:
-                    dest_config.append(elem)
+            for src_elem in source_config:
+                if not isinstance(src_elem, dict):
+                    if src_elem not in dest_config:
+                        dest_config.append(src_elem)
+                else:
+                    if 'name' in src_elem:
+                        found_dest_elem = None
+                        for dest_elem in dest_config:
+                            dest_elem_name = dest_elem.get('name', None)
+                            if dest_elem_name == src_elem['name']:
+                                found_dest_elem = dest_elem
+                                break
+                        if found_dest_elem:
+                            Config._merge_config(src_elem, found_dest_elem)
+                        else:
+                            dest_config.append(src_elem)
+                    else:
+                        dest_config.append(src_elem)
         else:
             dest_config = source_config
 
